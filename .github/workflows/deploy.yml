@@ -13,28 +13,39 @@ jobs:
   push:
     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4
+    env:
+      AWS_REGION: us-east-1
+      ECR_REPOSITORY: my-app
 
-      - name: Configure AWS credentials
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::776069638114:role/github-oidc-paytrack-role
-          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::123456789012:role/github-ecr-push-role
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build image
-        run: docker build -t paytrack .
+      - name: Set image tag
+        run: |
+          echo "IMAGE_TAG=${GITHUB_SHA}" >> $GITHUB_ENV
+
+      - name: Build Docker image
+        run: |
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
 
       - name: Tag image
         run: |
-          docker tag paytrack:latest \
-          ${{ steps.login-ecr.outputs.registry }}/paytrack:latest
+          docker tag \
+            $ECR_REPOSITORY:$IMAGE_TAG \
+            ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Push image
         run: |
           docker push \
-          ${{ steps.login-ecr.outputs.registry }}/paytrack:latest
+            ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
