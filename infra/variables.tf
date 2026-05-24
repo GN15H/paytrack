@@ -13,3 +13,7 @@ variable "jwt_secret" {
 variable "ec2_key_name" {
   description = "Name of the EC2 key pair for SSH access"
 }
+
+variable "profile" {
+  sensitive = true
+}
