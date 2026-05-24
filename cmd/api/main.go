@@ -11,8 +11,34 @@ import (
 	"github.com/GN15H/paytrack/internal/summary"
 	"github.com/GN15H/paytrack/internal/transactions"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 )
+
+func runMigrations(db *sqlx.DB) {
+	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
+	if err != nil {
+		log.Fatalf("migration driver error: %v", err)
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://migrations",
+		"postgres",
+		driver,
+	)
+	if err != nil {
+		log.Fatalf("migration init error: %v", err)
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatalf("migration error: %v", err)
+	}
+
+	log.Println("migrations applied successfully")
+}
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -39,6 +65,8 @@ func main() {
 
 	summaryService := summary.NewService(database)
 	summaryHandler := summary.NewHandler(summaryService)
+
+	runMigrations(database)
 
 	r := gin.Default()
 
