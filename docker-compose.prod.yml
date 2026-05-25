@@ -1,0 +1,15 @@
+services:
+  api:
+    image: ${ECR_REPOSITORY_URL}:${IMAGE_TAG}
+    container_name: paytrack
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: 5432
+      DB_USER: paytrack
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: paytrack
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 8080
