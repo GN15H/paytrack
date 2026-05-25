@@ -66,8 +66,9 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
-              docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            sudo ./pull.sh
+            # aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+            #   docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
             export ECR_REPOSITORY_URL=${{ env.FULL_IMAGE }}
             export IMAGE_TAG=${{ env.IMAGE_TAG }}
@@ -76,5 +77,5 @@ jobs:
             export JWT_SECRET=${{ secrets.JWT_SECRET }}
 
             cd /home/ec2-user
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d --force-recreate
+            sudo docker compose -f docker-compose.prod.yml pull
+            sudo docker compose -f docker-compose.prod.yml up -d --force-recreate
